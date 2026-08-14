@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可轉債 股價衝鋒炮</title>
+<style>
+:root{
+  --bg:#0e0e10;--bg2:#18181b;--bg3:#222226;--border:#2e2e33;
+  --text:#f0f0f2;--text2:#a0a0a8;--text3:#66666e;
+  --gold:#d4af37;--red:#f2555a;--green:#3ddc84;--blue:#5aa2f2;--orange:#f2a044;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh}
+.page{max-width:1200px;margin:0 auto;padding:1.5rem 1rem 4rem}
+header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+h1{font-size:22px;font-weight:600;letter-spacing:1px}
+h1 span{color:var(--gold)}
+.data-time{font-size:12px;color:var(--text3)}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.7}
+.nav{font-size:13px;color:var(--blue);text-decoration:none;border:1px solid var(--border);
+  border-radius:99px;padding:3px 12px;white-space:nowrap}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.chip{padding:5px 14px;border-radius:99px;border:1px solid var(--border);background:transparent;
+  color:var(--text2);font:inherit;font-size:12.5px;cursor:pointer}
+.chip.sel{background:var(--gold);color:#1a1400;border-color:var(--gold);font-weight:600}
+.search{flex:1;min-width:150px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;
+  background:var(--bg2);color:var(--text);font:inherit;font-size:14px}
+.search::placeholder{color:var(--text3)}
+.wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg2)}
+table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--bg3)}
+th{color:var(--text2);font-weight:500;font-size:11.5px;cursor:pointer;position:sticky;top:0;
+  background:var(--bg2);user-select:none}
+th:hover{color:var(--text)}
+th.on{color:var(--gold)}
+td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:var(--bg2)}
+tr:hover td{background:var(--bg3)}
+tr:hover td:first-child{background:var(--bg3)}
+.nm{font-weight:600}
+.cd{font-size:11px;color:var(--text2);margin-left:4px}
+.up{color:var(--red)}.down{color:var(--green)}
+.hi{font-size:11px;padding:2px 7px;border-radius:4px;background:rgba(212,175,55,.15);color:var(--gold)}
+.hi.b120{background:rgba(242,85,90,.18);color:#ff7a7f}
+.hi.b60{background:rgba(242,160,68,.15);color:var(--orange)}
+.muted{color:var(--text3)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:14px}
+.footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);
+  font-size:12px;color:var(--text3);line-height:1.9}
+.cnt{font-size:12px;color:var(--text3);margin-bottom:8px}
+@media(max-width:640px){ .page{padding:1rem .5rem 3rem} th,td{padding:7px 8px;font-size:12px} }
+</style>
+<meta name="theme-color" content="#0e0e10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="可轉債">
+<meta name="robots" content="noindex">
+</head>
+<body>
+<div class="page">
+<header>
+  <h1><span>◆</span> 可轉債 股價衝鋒炮</h1>
+  <span class="data-time" id="data-time"></span>
+  <a class="nav" href="./">◆ 處置股監測</a>
+  <a class="nav" href="signals.html">📈 台股 K 線訊號</a>
+</header>
+<div class="subtitle">
+  找「標的股在創新高、可轉債卻還沒反應」的標的 —
+  理論價 ＝ 標的股價 ÷ 轉換價 × 100，折溢價 ＝ (可轉債價 − 理論價) ÷ 理論價<br>
+  資料來源：統一證券 CBAS 資訊網公開 API・標的股創新高天數由本站以證交所日線計算
+</div>
+<div class="controls" id="ctl"></div>
+<div class="cnt" id="cnt"></div>
+<div class="wrap"><table id="tb"></table></div>
+<div class="footer">
+  <div>📌 <b>折溢價為負</b>＝可轉債比理論價便宜，理論上可買債轉股套利；但要看得到成交量才做得進去。</div>
+  <div>📌 <b>創新高天數</b>＝標的股目前收盤是幾個交易日以來的最高。120+ 代表創 120 日以上新高。</div>
+  <div>📌 <b>殖利率</b>＝賣回殖利率（持有到賣回日的年化報酬），空白表示沒有賣回權或已過賣回日。</div>
+  <div>📌 停止轉換期間內無法轉換，套利前要先確認。本工具僅整理公開資訊，不構成投資建議。</div>
+</div>
+</div>
+<script>
+document.write('<script src="cb.js?v=' + Date.now() + '"><\/script>');
+</script>
+<script>
+const D = window.CB_DATA || null;
+let sortKey='highDays', sortDir=-1, hiFilter=0, volOnly=false, q='';
+
+const COLS=[
+  ['name','名稱',r=>`<span class="nm">${r.name}</span><span class="cd">${r.code}</span>`],
+  ['stockName','標的',r=>r.stockName?`${r.stockName}<span class="cd">${r.stock}</span>`:r.stock],
+  ['stockPrice','標的收盤價',r=>fmt(r.stockPrice)],
+  ['stockChg','標的漲跌',r=>pct(r.stockChg)],
+  ['highDays','創新高天數',r=>r.highDays?`<span class="hi ${r.highDays>=120?'b120':r.highDays>=60?'b60':''}">${r.highDays}+</span>`:'<span class="muted">—</span>'],
+  ['convPrice','轉換價',r=>fmt(r.convPrice)],
+  ['theory','理論價',r=>fmt(r.theory)],
+  ['cbPrice','可轉債收盤',r=>fmt(r.cbPrice)],
+  ['premium','折溢價',r=>pct(r.premium,true)],
+  ['vol5','5日均量',r=>fmt(r.vol5,1)],
+  ['vol20','20日均量',r=>fmt(r.vol20,1)],
+  ['yield','殖利率(%)',r=>fmt(r.yield)],
+  ['putDate','賣回日',r=>r.putDate||'<span class="muted">—</span>'],
+  ['period','年期',r=>fmt(r.period)],
+  ['tcri','TCRI',r=>r.tcri||'<span class="muted">—</span>'],
+];
+function fmt(v,d){return v==null?'<span class="muted">—</span>':(+v).toFixed(d==null?2:d)}
+function pct(v,inv){
+  if(v==null)return '<span class="muted">—</span>';
+  const c=inv?(v>0?'down':v<0?'up':''):(v>0?'up':v<0?'down':'');
+  return `<span class="${c}">${v>0?'+':''}${(+v).toFixed(2)}</span>`;
+}
+
+function render(){
+  if(!D){document.getElementById('tb').innerHTML=
+    '<tr><td class="empty">找不到 cb.js，請先執行 cb_build.py</td></tr>';return}
+  document.getElementById('data-time').textContent='資料時間：'+D.generatedAt;
+
+  document.getElementById('ctl').innerHTML=
+    [[0,'全部'],[20,'創20日新高'],[60,'創60日新高'],[120,'創120日新高']]
+      .map(([v,l])=>`<button class="chip ${hiFilter===v?'sel':''}" data-hi="${v}">${l}</button>`).join('')
+    +`<button class="chip ${volOnly?'sel':''}" data-vol="1">只看有成交量</button>`
+    +`<input class="search" placeholder="搜尋名稱或代號..." value="${q}">`;
+  document.querySelectorAll('#ctl .chip').forEach(b=>b.onclick=()=>{
+    if(b.dataset.hi!==undefined)hiFilter=+b.dataset.hi; else volOnly=!volOnly; render();});
+  const inp=document.querySelector('#ctl .search');
+  inp.oninput=()=>{q=inp.value.trim();render();
+    const el=document.querySelector('#ctl .search');el.focus();
+    el.setSelectionRange(el.value.length,el.value.length);};
+
+  let rows=D.rows.filter(r=>{
+    if(hiFilter&&r.highDays<hiFilter)return false;
+    if(volOnly&&!(r.vol5>0))return false;
+    if(q&&!(r.name.includes(q)||r.code.includes(q)||(r.stockName||'').includes(q)||r.stock.includes(q)))return false;
+    return true;
+  });
+  rows.sort((a,b)=>{
+    const x=a[sortKey],y=b[sortKey];
+    if(x==null&&y==null)return 0;
+    if(x==null)return 1; if(y==null)return -1;
+    if(typeof x==='string')return sortDir*x.localeCompare(y);
+    return sortDir*(x-y);
+  });
+  document.getElementById('cnt').textContent=`${rows.length} 檔（全市場 ${D.rows.length} 檔）`;
+  document.getElementById('tb').innerHTML=
+    '<tr>'+COLS.map(([k,l])=>`<th data-k="${k}" class="${sortKey===k?'on':''}">${l}${sortKey===k?(sortDir<0?' ▼':' ▲'):''}</th>`).join('')+'</tr>'
+    +(rows.length?rows.map(r=>'<tr>'+COLS.map(c=>`<td>${c[2](r)}</td>`).join('')+'</tr>').join('')
+      :'<tr><td colspan="15" class="empty">沒有符合的資料</td></tr>');
+  document.querySelectorAll('#tb th').forEach(th=>th.onclick=()=>{
+    const k=th.dataset.k;
+    if(sortKey===k)sortDir=-sortDir; else {sortKey=k;sortDir=-1;}
+    render();});
+}
+render();
+setInterval(()=>location.reload(),300000);
+</script>
+</body>
+</html>
