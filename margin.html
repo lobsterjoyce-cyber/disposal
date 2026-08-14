@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>融資維持率試算</title>
+<style>
+:root{
+  --bg:#0e0e10;--bg2:#18181b;--bg3:#222226;--border:#2e2e33;
+  --text:#f0f0f2;--text2:#a0a0a8;--text3:#66666e;
+  --gold:#d4af37;--red:#f2555a;--green:#3ddc84;--blue:#5aa2f2;--orange:#f2a044;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.page{max-width:900px;margin:0 auto;padding:1.5rem 1rem 4rem;}
+header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px;}
+h1{font-size:22px;font-weight:600;letter-spacing:1px;}
+h1 span{color:var(--gold);}
+.nav{font-size:13px;color:var(--blue);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:3px 12px;white-space:nowrap;}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:1.25rem;}
+
+/* 整戶總結 */
+.summary{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:1.25rem;}
+.summary.danger{border-color:var(--red);}
+.summary.warn{border-color:var(--orange);}
+.big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+.big .n{font-size:40px;font-weight:600;line-height:1;}
+.big .l{font-size:13px;color:var(--text2);}
+.big .tag{font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;white-space:nowrap;}
+.tag.ok{background:rgba(61,220,132,.15);color:var(--green);}
+.tag.warn{background:rgba(242,160,68,.15);color:var(--orange);}
+.tag.danger{background:rgba(242,85,90,.15);color:var(--red);}
+.n.ok{color:var(--green);} .n.warn{color:var(--orange);} .n.danger{color:var(--red);}
+.room{font-size:14px;color:var(--text2);margin-top:10px;line-height:1.8;}
+.room b{color:var(--text);font-weight:600;}
+.room b.danger{color:var(--red);}
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.sg{text-align:center;}
+.sg .n{font-size:17px;font-weight:600;}
+.sg .l{font-size:11px;color:var(--text2);margin-top:2px;}
+.callout{margin-top:12px;padding:12px 14px;border-radius:8px;background:rgba(242,85,90,.1);border:1px solid var(--red);font-size:13px;line-height:1.8;color:var(--text);}
+.callout b{color:var(--red);}
+
+/* 設定 */
+.settings{display:flex;gap:14px;flex-wrap:wrap;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--text2);}
+.settings label{display:flex;align-items:center;gap:6px;}
+.settings input{width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);font-size:13px;text-align:right;}
+
+/* 持股表 */
+.tblwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg2);}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:720px;}
+th,td{padding:8px 10px;border-bottom:1px solid var(--bg3);text-align:right;white-space:nowrap;}
+th{color:var(--text2);font-weight:500;font-size:12px;background:var(--bg2);}
+th:first-child,td:first-child{text-align:left;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.danger{background:rgba(242,85,90,.07);}
+input.cell{width:88px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);font-size:13px;text-align:right;}
+input.cell.name{width:110px;text-align:left;}
+select.cell{padding:5px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);font-size:13px;}
+.rate{font-weight:600;}
+.rate.ok{color:var(--green);} .rate.warn{color:var(--orange);} .rate.danger{color:var(--red);}
+.del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 4px;}
+.del:hover{color:var(--red);}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;}
+.btn:hover{border-color:var(--text3);color:var(--text);}
+.btn.primary{background:var(--gold);color:#1a1400;border-color:var(--gold);font-weight:600;}
+.empty{text-align:center;padding:2rem 1rem;color:var(--text3);font-size:14px;}
+.footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);font-size:12px;color:var(--text3);line-height:1.9;}
+.footer code{background:var(--bg3);padding:1px 6px;border-radius:4px;color:var(--text2);}
+@media(max-width:640px){ .big .n{font-size:32px;} }
+</style>
+<meta name="theme-color" content="#0e0e10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="維持率">
+<meta name="robots" content="noindex">
+</head>
+<body>
+<div class="page">
+
+<header>
+  <h1><span>◆</span> 融資維持率試算</h1>
+  <a class="nav" href="index.html">◆ 處置股監測</a>
+  <a class="nav" href="signals.html">📈 台股 K 線訊號</a>
+  <a class="nav" href="cb.html">◆ 可轉債</a>
+  <a class="nav" href="magic.html">◆ 神奇指標</a>
+</header>
+<p class="subtitle">算整戶維持率、還能跌多少、以及要補繳多少。資料存在這台裝置，不會上傳。</p>
+
+<!-- 整戶總結 -->
+<div class="summary" id="summary"></div>
+
+<!-- 參數設定 -->
+<div class="settings">
+  <label>追繳線
+    <input type="number" id="callLine" value="130" step="1" min="0"> %
+  </label>
+  <label>補繳目標
+    <input type="number" id="restoreLine" value="166" step="1" min="0"> %
+  </label>
+  <span style="color:var(--text3);font-size:12px">※ 以券商實際規定為準，可自行調整</span>
+</div>
+
+<!-- 持股 -->
+<div class="tblwrap">
+  <table>
+    <thead>
+      <tr>
+        <th>股票</th>
+        <th>市場</th>
+        <th>買進價</th>
+        <th>張數</th>
+        <th>現價</th>
+        <th>融資金額</th>
+        <th>市值</th>
+        <th>單檔維持率</th>
+        <th>單檔追繳價</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<div class="actions">
+  <button class="btn primary" id="addBtn">＋ 新增一檔</button>
+  <button class="btn" id="clearBtn">清空</button>
+</div>
+
+<div class="footer">
+  <b style="color:var(--text2)">算法</b><br>
+  融資金額 ＝ 買進價 × 股數 × 融資成數<br>
+  維持率 ＝ 股票市值 ÷ 融資金額 × 100%<br>
+  整戶維持率 ＝ 所有持股市值總和 ÷ 融資金額總和 × 100%<br>
+  單檔追繳價 ＝ 買進價 × 融資成數 × 追繳線<br>
+  補繳金額 ＝ 融資金額總和 － 市值總和 ÷ 補繳目標<br><br>
+  <b style="color:var(--text2)">注意</b><br>
+  券商是看<b style="color:var(--text2)">整戶</b>維持率發追繳令，不是單檔。單檔維持率只是讓你看哪一檔在拖累。<br>
+  融資成數預設上市 <code>60%</code>、上櫃 <code>50%</code>，個股可能因列為注意、處置或信用交易調整而不同，實際以券商為準。<br>
+  這裡不含手續費、融資利息、交易稅，是概算。
+</div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const KEY = "margin_positions_v1";
+  const SET_KEY = "margin_settings_v1";
+  const DEFAULT_RATIO = { listed: 0.6, otc: 0.5 };
+
+  let rows = [];
+
+  // ── 儲存（失敗不影響使用）──────────────────────────
+  function save(){
+    try{
+      localStorage.setItem(KEY, JSON.stringify(rows));
+      localStorage.setItem(SET_KEY, JSON.stringify({
+        call: callLine.value, restore: restoreLine.value
+      }));
+    }catch(e){ /* 無痕模式或封鎖儲存時略過 */ }
+  }
+  function load(){
+    try{
+      const r = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (Array.isArray(r)) rows = r;
+      const s = JSON.parse(localStorage.getItem(SET_KEY) || "null");
+      if (s){
+        if (s.call) callLine.value = s.call;
+        if (s.restore) restoreLine.value = s.restore;
+      }
+    }catch(e){ rows = []; }
+  }
+
+  const tbody      = document.getElementById("tbody");
+  const summaryEl  = document.getElementById("summary");
+  const callLine   = document.getElementById("callLine");
+  const restoreLine= document.getElementById("restoreLine");
+
+  function blank(){
+    return { name:"", market:"listed", buy:"", lots:"", now:"" };
+  }
+
+  function num(v){
+    const n = parseFloat(v);
+    return isFinite(n) ? n : 0;
+  }
+
+  function ratioOf(r){
+    if (r.market === "custom") return num(r.customRatio) / 100;
+    return DEFAULT_RATIO[r.market] ?? 0.6;
+  }
+
+  // 單檔計算
+  function calc(r){
+    const shares = num(r.lots) * 1000;
+    const ratio  = ratioOf(r);
+    const cost   = num(r.buy) * shares;
+    const loan   = cost * ratio;              // 融資金額
+    const own    = cost - loan;               // 自備款
+    const value  = num(r.now) * shares;       // 市值
+    const rate   = loan > 0 ? value / loan : 0;
+    const callPx = num(r.buy) * ratio * (num(callLine.value) / 100);
+    return { shares, ratio, cost, loan, own, value, rate, callPx };
+  }
+
+  const fmt  = n => Math.round(n).toLocaleString("zh-TW");
+  const pct  = n => (n * 100).toFixed(1) + "%";
+
+  function level(rate){
+    const call = num(callLine.value) / 100;
+    if (!isFinite(rate) || rate === 0) return "";
+    if (rate < call)        return "danger";
+    if (rate < call + 0.20) return "warn";    // 距離追繳 20 個百分點內
+    return "ok";
+  }
+
+  // ── 畫表 ──────────────────────────────────────────
+  function render(){
+    tbody.innerHTML = "";
+
+    if (!rows.length){
+      tbody.innerHTML =
+        '<tr><td colspan="10" class="empty">還沒有持股，按下面的「新增一檔」開始</td></tr>';
+      renderSummary();
+      return;
+    }
+
+    rows.forEach((r, i) => {
+      const c  = calc(r);
+      const lv = level(c.rate);
+      const tr = document.createElement("tr");
+      if (lv === "danger") tr.className = "danger";
+
+      tr.innerHTML = `
+        <td><input class="cell name" data-i="${i}" data-f="name"
+                   value="${r.name || ""}" placeholder="代號或名稱"></td>
+        <td>
+          <select class="cell" data-i="${i}" data-f="market">
+            <option value="listed" ${r.market === "listed" ? "selected" : ""}>上市 60%</option>
+            <option value="otc"    ${r.market === "otc"    ? "selected" : ""}>上櫃 50%</option>
+            <option value="custom" ${r.market === "custom" ? "selected" : ""}>自訂</option>
+          </select>
+          ${r.market === "custom"
+            ? `<input class="cell" style="width:56px;margin-left:4px" data-i="${i}"
+                      data-f="customRatio" value="${r.customRatio ?? 60}" placeholder="%">`
+            : ""}
+        </td>
+        <td><input class="cell" data-i="${i}" data-f="buy"  value="${r.buy  || ""}" placeholder="0.00"></td>
+        <td><input class="cell" data-i="${i}" data-f="lots" value="${r.lots || ""}" placeholder="0"></td>
+        <td><input class="cell" data-i="${i}" data-f="now"  value="${r.now  || ""}" placeholder="0.00"></td>
+        <td>${c.loan  ? fmt(c.loan)  : "—"}</td>
+        <td>${c.value ? fmt(c.value) : "—"}</td>
+        <td class="rate ${lv}">${c.loan ? pct(c.rate) : "—"}</td>
+        <td>${c.callPx ? c.callPx.toFixed(2) : "—"}</td>
+        <td><button class="del" data-del="${i}" title="刪除">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    renderSummary();
+  }
+
+  // ── 整戶總結 ───────────────────────────────────────
+  function renderSummary(){
+    let loan = 0, value = 0, own = 0;
+    rows.forEach(r => {
+      const c = calc(r);
+      loan  += c.loan;
+      value += c.value;
+      own   += c.own;
+    });
+
+    if (loan <= 0){
+      summaryEl.className = "summary";
+      summaryEl.innerHTML =
+        '<div class="big"><span class="l">填入持股後，這裡會顯示整戶維持率</span></div>';
+      return;
+    }
+
+    const rate    = value / loan;
+    const lv      = level(rate);
+    const call    = num(callLine.value) / 100;
+    const restore = num(restoreLine.value) / 100;
+
+    // 跌到追繳線還有多少空間
+    const needValue = loan * call;                       // 觸及追繳時的總市值
+    const room      = (value - needValue) / value;       // 還能跌幾 %
+    const topUp     = loan - value / restore;            // 補繳金額
+
+    const tag = lv === "danger" ? '<span class="tag danger">已低於追繳線</span>'
+              : lv === "warn"   ? '<span class="tag warn">接近追繳線</span>'
+              :                   '<span class="tag ok">安全</span>';
+
+    let html = `
+      <div class="big">
+        <span class="n ${lv}">${pct(rate)}</span>
+        <span class="l">整戶維持率</span>
+        ${tag}
+      </div>`;
+
+    if (room > 0){
+      html += `<div class="room">目前總市值 <b>${fmt(value)}</b> 元，
+        再跌 <b>${(room * 100).toFixed(1)}%</b>（總市值到 <b>${fmt(needValue)}</b> 元）
+        就會碰到 ${num(callLine.value)}% 追繳線。</div>`;
+    } else {
+      html += `<div class="room">總市值 <b>${fmt(value)}</b> 元，
+        已經<b class="danger">低於</b> ${num(callLine.value)}% 追繳線
+        （門檻 <b>${fmt(needValue)}</b> 元）。</div>`;
+    }
+
+    html += `
+      <div class="sumgrid">
+        <div class="sg"><div class="n">${fmt(value)}</div><div class="l">總市值</div></div>
+        <div class="sg"><div class="n">${fmt(loan)}</div><div class="l">融資金額</div></div>
+        <div class="sg"><div class="n">${fmt(own)}</div><div class="l">自備款</div></div>
+        <div class="sg"><div class="n ${value - loan >= 0 ? "ok" : "danger"}">${fmt(value - loan)}</div><div class="l">淨值（市值－融資）</div></div>
+      </div>`;
+
+    if (lv === "danger" && topUp > 0){
+      html += `<div class="callout">
+        要把整戶維持率拉回 ${num(restoreLine.value)}%，需補繳現金約 <b>${fmt(topUp)}</b> 元；
+        或賣出部分持股降低融資餘額。<br>
+        <span style="color:var(--text2)">實際追繳金額與期限以券商通知為準。</span>
+      </div>`;
+    }
+
+    summaryEl.className = "summary" + (lv === "danger" ? " danger" : lv === "warn" ? " warn" : "");
+    summaryEl.innerHTML = html;
+  }
+
+  // ── 事件 ──────────────────────────────────────────
+  tbody.addEventListener("input", e => {
+    const el = e.target;
+    const i  = el.dataset.i;
+    if (i === undefined) return;
+    rows[i][el.dataset.f] = el.value;
+    save();
+    // 只重算數字，不重建整列，避免打字時游標跳掉
+    if (el.dataset.f === "name") { renderSummary(); return; }
+    render();
+    const again = tbody.querySelector(`[data-i="${i}"][data-f="${el.dataset.f}"]`);
+    if (again){ again.focus(); again.setSelectionRange?.(again.value.length, again.value.length); }
+  });
+
+  tbody.addEventListener("change", e => {
+    if (e.target.dataset.f === "market"){
+      rows[e.target.dataset.i].market = e.target.value;
+      save(); render();
+    }
+  });
+
+  tbody.addEventListener("click", e => {
+    const d = e.target.dataset.del;
+    if (d === undefined) return;
+    rows.splice(d, 1);
+    save(); render();
+  });
+
+  document.getElementById("addBtn").addEventListener("click", () => {
+    rows.push(blank()); save(); render();
+    const inputs = tbody.querySelectorAll('[data-f="name"]');
+    inputs[inputs.length - 1]?.focus();
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    if (!rows.length || confirm("確定清空所有持股？")){
+      rows = []; save(); render();
+    }
+  });
+
+  [callLine, restoreLine].forEach(el =>
+    el.addEventListener("input", () => { save(); render(); })
+  );
+
+  // ── 啟動 ──────────────────────────────────────────
+  load();
+  if (!rows.length) rows = [blank()];
+  render();
+})();
+</script>
+</body>
+</html>

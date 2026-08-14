@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>神奇指標訊號</title>
+<style>
+:root{
+  --bg:#0e0e10;--bg2:#18181b;--bg3:#222226;--border:#2e2e33;
+  --text:#f0f0f2;--text2:#a0a0a8;--text3:#66666e;
+  --gold:#d4af37;--red:#f2555a;--green:#3ddc84;--blue:#5aa2f2;--orange:#f2a044;--purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.page{max-width:1000px;margin:0 auto;padding:1.5rem 1rem 4rem;}
+header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+h1{font-size:22px;font-weight:600;letter-spacing:1px;}
+h1 span{color:var(--gold);}
+.nav{font-size:13px;color:var(--blue);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:3px 12px;white-space:nowrap;}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.7;}
+
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;}
+.panel h3{font-size:13px;color:var(--text2);font-weight:500;margin-bottom:10px;}
+.ctrls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--text2);}
+.ctrls label{display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.ctrls input[type=number]{width:62px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);font-size:13px;text-align:right;}
+.hint{font-size:12px;color:var(--text3);margin-top:8px;line-height:1.7;}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.tab{padding:7px 14px;border-radius:99px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;white-space:nowrap;}
+.tab.on{background:var(--blue);border-color:var(--blue);color:#06121f;font-weight:600;}
+.tab .n{opacity:.75;margin-left:4px;font-size:11px;}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.card .n{font-size:24px;font-weight:600;}
+.card .l{font-size:11px;color:var(--text2);margin-top:3px;}
+.n.buy{color:var(--red);} .n.sell{color:var(--green);} .n.warn{color:var(--orange);}
+
+.tblwrap{border:1px solid var(--border);border-radius:10px;background:var(--bg2);overflow:hidden;}
+table{border-collapse:collapse;width:100%;font-size:13px;}
+th,td{padding:9px 10px;border-bottom:1px solid var(--bg3);text-align:left;vertical-align:top;}
+th{color:var(--text2);font-weight:500;font-size:12px;position:sticky;top:0;background:var(--bg2);z-index:1;}
+td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+tbody tr{cursor:pointer;}
+tbody tr:hover{background:var(--bg3);}
+tbody tr:last-child td{border-bottom:none;}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;}
+.badge.buy{background:rgba(242,85,90,.16);color:var(--red);}
+.badge.sell{background:rgba(61,220,132,.16);color:var(--green);}
+.badge.warn{background:rgba(242,160,68,.16);color:var(--orange);}
+.badge.watch{background:rgba(167,139,250,.16);color:var(--purple);}
+.star{color:var(--gold);}
+.clash{font-size:11px;color:var(--orange);border:1px solid var(--orange);border-radius:4px;padding:1px 5px;margin-left:6px;}
+.detail{background:var(--bg3);}
+.detail td{padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.9;}
+.detail b{color:var(--text);}
+.detail .row{display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.detail .row:last-child{border-bottom:none;}
+.detail .d{color:var(--text3);min-width:62px;}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:14px;}
+.foot{margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);font-size:12px;color:var(--text3);line-height:1.9;}
+.foot b{color:var(--text2);}
+.foot code{background:var(--bg3);padding:1px 6px;border-radius:4px;color:var(--text2);}
+.loading{text-align:center;padding:3rem;color:var(--text2);}
+@media(max-width:640px){
+  .hide-sm{display:none;}
+  th,td{padding:8px 6px;font-size:12px;}
+}
+</style>
+<meta name="theme-color" content="#0e0e10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="神奇指標">
+<meta name="robots" content="noindex">
+</head>
+<body>
+<div class="page">
+
+<header>
+  <h1><span>◆</span> 神奇指標訊號</h1>
+  <a class="nav" href="./">◆ 處置股監測</a>
+  <a class="nav" href="signals.html">📈 K 線訊號</a>
+  <a class="nav" href="cb.html">◆ 可轉債</a>
+  <a class="nav" href="margin.html">◆ 融資維持率</a>
+</header>
+<p class="subtitle">
+  康老師第5堂課：葛蘭碧月線法則（3買3賣）＋ MACD 零軸交叉次數。<br>
+  資料用本站 <code style="background:var(--bg3);padding:1px 5px;border-radius:4px">db.js</code> 的 982 檔日線，點任一列展開該檔完整訊號歷程。
+</p>
+
+<div class="panel">
+  <h3>參數（改了馬上重算，可以直接看訊號量怎麼變）</h3>
+  <div class="ctrls">
+    <label>最近 <input type="number" id="pDays" value="3" min="1" max="60"> 個交易日</label>
+    <label>帶量倍數 <input type="number" id="pVolUp" value="1.5" min="0.1" max="10" step="0.1"> ×均量</label>
+    <label>不帶量 <input type="number" id="pVolDn" value="0.8" min="0.1" max="5" step="0.1"> ×均量</label>
+    <label>長紅/黑K <input type="number" id="pBody" value="5" min="0.5" max="20" step="0.5"> %</label>
+    <label>長引線 <input type="number" id="pWick" value="5" min="0.5" max="20" step="0.5"> %</label>
+  </div>
+  <div class="hint" id="hint"></div>
+</div>
+
+<div class="cards" id="cards"></div>
+<div class="tabs" id="tabs"></div>
+<div class="tblwrap"><table>
+  <thead><tr>
+    <th style="width:92px">代號</th>
+    <th>名稱</th>
+    <th class="num">收盤</th>
+    <th style="width:70px">類別</th>
+    <th>訊號</th>
+  </tr></thead>
+  <tbody id="tbody"><tr><td colspan="5" class="loading">載入日線資料中…</td></tr></tbody>
+</table></div>
+
+<div class="foot">
+  <b>葛蘭碧（月線＝20日均線）</b><br>
+  買① 帶量紅K站上月線（紅K跌破不算）　買② 回檔碰月線，只有第1次能買　買③ 第1次跌破月線＋止跌訊號<br>
+  賣① 不帶量黑K跌破月線　賣② 反彈碰到月線　賣③ 月線上方出現止漲訊號<br>
+  止跌訊號＝十字線／長紅K／長下引線　　止漲訊號＝十字線／長黑K／長上引線<br><br>
+  <b>MACD（零軸上下以 DIF 與 MACD「兩條線皆」同側判定）</b><br>
+  零軸上黃金交叉＝主要買點　／　零軸下第1次金叉不能買、第2次要配合型態、<b>第3次以上可以買並加碼</b><br>
+  零軸上第2次死亡交叉＝全賣、放空（尤其發生在 M 頭）　／　柱狀體縮頭縮腳＝反轉警訊<br><br>
+  <b>注意</b>　訊號是程式依課堂規則機械式判讀，不是投資建議。<br>
+  「<span style="color:var(--orange)">多空打架</span>」標記代表同一檔同時出現買與賣訊號 —— 老師說「莫方法混用」，這種要自己判斷，別兩套硬湊。
+</div>
+
+</div>
+
+<script src="db.js"></script>
+<script src="pairs.js"></script>
+<script>
+(function(){
+"use strict";
+
+// ── 指標 ─────────────────────────────────────────────
+const sma=(a,n)=>a.map((_,i)=>i<n-1?null:a.slice(i-n+1,i+1).reduce((x,y)=>x+y,0)/n);
+function ema(a,p){
+  const k=2/(p+1), out=new Array(Math.min(p-1,a.length)).fill(null);
+  if(a.length<p) return out;
+  let pr=a.slice(0,p).reduce((x,y)=>x+y,0)/p; out.push(pr);
+  for(let i=p;i<a.length;i++){pr=a[i]*k+pr*(1-k);out.push(pr);}
+  return out;
+}
+function macd(c){
+  const e12=ema(c,12), e26=ema(c,26);
+  const dif=c.map((_,i)=>(e12[i]==null||e26[i]==null)?null:e12[i]-e26[i]);
+  const dv=dif.filter(v=>v!=null), sv=ema(dv,9), off=dif.findIndex(v=>v!=null);
+  const sig=dif.map((_,i)=>i<off?null:(sv[i-off]??null));
+  const hist=dif.map((_,i)=>(dif[i]==null||sig[i]==null)?null:dif[i]-sig[i]);
+  return {dif,sig,hist};
+}
+
+// ── K 棒型態 ─────────────────────────────────────────
+function candle(o,h,l,c,P){
+  const base=o||1, body=c-o, up=h-Math.max(o,c), lo=Math.min(o,c)-l;
+  return {
+    red:c>o, black:c<o,
+    doji:Math.abs(body)/base<0.004,
+    longRed:  c>o && (c-o)/base>=P.body,
+    longBlack:c<o && (o-c)/base>=P.body,
+    longLower:lo/base>=P.wick,
+    longUpper:up/base>=P.wick,
+  };
+}
+const stopFall=k=>[k.doji&&'十字線',k.longRed&&'長紅K',k.longLower&&'長下引線'].filter(Boolean);
+const stopRise=k=>[k.doji&&'十字線',k.longBlack&&'長黑K',k.longUpper&&'長上引線'].filter(Boolean);
+
+// ── 葛蘭碧 ───────────────────────────────────────────
+function granville(b,P){
+  const {o,h,l,c,v}=b, ma=sma(c,20), vma=sma(v,20), out=[];
+  let phase=null, touchN=0, breakN=0, reboundN=0;
+
+  for(let i=1;i<c.length;i++){
+    if(ma[i]==null||ma[i-1]==null) continue;
+    const k=candle(o[i],h[i],l[i],c[i],P);
+    const above=c[i]>ma[i], wasAbove=c[i-1]>ma[i-1];
+    const volOK  = vma[i]!=null && v[i] > vma[i]*P.volUp;
+    const volLow = vma[i]!=null && v[i] < vma[i]*P.volDn;
+    const ref=ma[i-5]??ma[i], slope=(ma[i]-ref)/ref;
+    const maUp=slope>0.003, maDown=slope<-0.003, maFlat=!maUp&&!maDown;
+    const S=[];
+
+    if(above&&!wasAbove){
+      phase='bull'; touchN=0; breakN=0; reboundN=0;
+      if(k.red&&volOK){
+        S.push({t:'BUY',code:'買①',name:'帶量紅K站上月線',strong:maFlat||maUp,
+          d:`收 ${c[i].toFixed(2)} 站上月線 ${ma[i].toFixed(2)}，量為均量 ${(v[i]/vma[i]).toFixed(2)} 倍`
+            +(maFlat||maUp?'，均線已走平或翻揚':'，但均線仍下彎（教材A要求走平或上升）')});
+      }
+    }
+
+    if(!above&&wasAbove){
+      breakN++; const wasBull=phase==='bull'; phase='bear'; touchN=0; reboundN=0;
+      const sf=stopFall(k);
+      if(wasBull&&breakN===1&&sf.length){
+        S.push({t:'BUY',code:'買③',name:`第1次跌破月線但出現止跌訊號（${sf.join('、')}）`,strong:true,
+          d:`收 ${c[i].toFixed(2)}，月線 ${ma[i].toFixed(2)}`});
+      }
+      if(k.black&&volLow){
+        S.push({t:'SELL',code:'賣①',name:'不帶量黑K跌破月線',strong:!sf.length,
+          d:`收 ${c[i].toFixed(2)} 跌破月線 ${ma[i].toFixed(2)}，量僅均量 ${(v[i]/vma[i]).toFixed(2)} 倍`
+            +(sf.length?`　※同時有止跌訊號（${sf.join('、')}），第1次跌破依筆記可改買進`:'')});
+      }else if(k.red){
+        S.push({t:'INFO',code:'—',name:'紅K跌破月線（筆記：不算）',strong:false,
+          d:`收 ${c[i].toFixed(2)}，月線 ${ma[i].toFixed(2)}`});
+      }
+    }
+
+    if(phase==='bull'&&above&&wasAbove){
+      const tc=l[i]<=ma[i]*1.005, ptc=l[i-1]<=ma[i-1]*1.005;
+      if(tc&&!ptc){
+        touchN++;
+        S.push({t:touchN===1?'BUY':'INFO',code:touchN===1?'買②':'—',
+          name:touchN===1?'回檔第1次碰到月線（可買）':`回檔第${touchN}次碰月線（只有第1次能買）`,
+          strong:touchN===1&&maUp,
+          d:`最低 ${l[i].toFixed(2)} 觸及月線 ${ma[i].toFixed(2)}，收 ${c[i].toFixed(2)}`
+            +(maUp?'，均線仍上升':'，但均線已不再上升'),
+          tag:`多頭${Math.min(touchN+1,3)}`});
+      }
+      const sr=stopRise(k);
+      if(sr.length&&!maUp){
+        S.push({t:'SELL',code:'賣③',name:`月線上方出現止漲訊號（${sr.join('、')}）`,strong:false,
+          d:`收 ${c[i].toFixed(2)}，月線 ${ma[i].toFixed(2)}，均線已轉平或下彎`});
+      }
+    }
+
+    if(phase==='bear'&&!above){
+      const tc=h[i]>=ma[i]*0.995, ptc=h[i-1]>=ma[i-1]*0.995;
+      if(tc&&!ptc){
+        reboundN++; const sr=stopRise(k);
+        S.push({t:'SELL',code:'賣②',name:`反彈第${reboundN}次碰到月線（放空點）`,strong:maDown&&sr.length>0,
+          d:`最高 ${h[i].toFixed(2)} 觸及月線 ${ma[i].toFixed(2)}，收 ${c[i].toFixed(2)}（仍在月線下）`
+            +(sr.length?`，並出現止漲訊號（${sr.join('、')}）`:''),
+          tag:`空頭${Math.min(reboundN+1,3)}`});
+      }
+    }
+
+    S.forEach(s=>out.push({i,src:'葛蘭碧',...s}));
+  }
+  return out;
+}
+
+// ── MACD ─────────────────────────────────────────────
+function macdRules(b){
+  const c=b.c, {dif,sig,hist}=macd(c), out=[];
+  let zone=null,g=0,d=0,shrink=false;
+
+  for(let i=1;i<c.length;i++){
+    if(dif[i]==null||sig[i]==null||dif[i-1]==null||sig[i-1]==null) continue;
+    const z=(dif[i]>0&&sig[i]>0)?'above':(dif[i]<0&&sig[i]<0)?'below':null;
+    if(z&&z!==zone){zone=z;g=0;d=0;}
+
+    if(dif[i]>sig[i]&&dif[i-1]<=sig[i-1]){
+      g++;
+      if(zone==='above'){
+        out.push({i,src:'MACD',t:'BUY',code:'M買',strong:true,
+          name:`零軸上黃金交叉（第${g}次）`,
+          d:`DIF ${dif[i].toFixed(3)} 上穿 MACD ${sig[i].toFixed(3)}，兩線皆在零軸上 → 主要買點`});
+      }else if(zone==='below'){
+        if(g===1) out.push({i,src:'MACD',t:'WARN',code:'不可買',strong:false,
+          name:'零軸下第1次黃金交叉',d:'筆記：0軸下第1次交叉 90~95% 不能買（還在套牢區），觀望'});
+        else if(g===2) out.push({i,src:'MACD',t:'WATCH',code:'觀察',strong:false,
+          name:'零軸下第2次黃金交叉',d:'筆記：第2次要發生在大型整理型態上、轉折向上才能買 → 需人工確認型態'});
+        else out.push({i,src:'MACD',t:'BUY',code:'M買',strong:true,
+          name:`零軸下第${g}次黃金交叉`,d:'老師確認：0軸下交叉第3次以上都可以買（相對低），且要加碼買'});
+      }
+    }
+
+    if(dif[i]<sig[i]&&dif[i-1]>=sig[i-1]){
+      d++;
+      if(zone==='above'){
+        out.push({i,src:'MACD',t:'SELL',code:d>=2?'M賣★':'M賣',strong:d>=2,
+          name:`零軸上死亡交叉（第${d}次）`,
+          d:d>=2?'筆記：0軸上第2次死亡交叉＝向下的全賣；若發生在 M 頭型態內可放空'
+                :'教材：零軸上死叉僅適合多頭先平倉賣出'});
+      }else if(zone==='below'){
+        out.push({i,src:'MACD',t:'SELL',code:'M賣',strong:true,
+          name:`零軸下死亡交叉（第${d}次）`,d:'教材：零軸下出現死亡交叉為賣出訊號'});
+      }
+    }
+
+    if(i>=3&&hist[i]!=null&&hist[i-1]!=null&&hist[i-2]!=null){
+      const a=hist[i-2],bb=hist[i-1],dd=hist[i];
+      const sh=Math.abs(dd)<Math.abs(bb)&&Math.abs(bb)<Math.abs(a);
+      const head=sh&&a>0&&bb>0&&dd>0&&zone==='above';
+      const foot=sh&&a<0&&bb<0&&dd<0&&zone==='below';
+      if((head||foot)&&!shrink){
+        shrink=true;
+        out.push(head
+          ?{i,src:'MACD',t:'WARN',code:'縮頭',strong:false,name:'零軸上柱狀體開始縮頭',d:'短期上漲趨勢減緩，可能隨時負反轉'}
+          :{i,src:'MACD',t:'WATCH',code:'縮腳',strong:false,name:'零軸下柱狀體開始縮腳',d:'短期下跌趨勢減緩，可能隨時正反轉'});
+      }else if(!head&&!foot){ shrink=false; }
+    }
+  }
+  return out;
+}
+
+// ── 資料 ─────────────────────────────────────────────
+const DB = window.DB_FULL || {};
+const DATES = (window.PAIRS_DATA && window.PAIRS_DATA.dates) || [];
+const CODES = Object.keys(DB);
+
+function barsOf(r){
+  const s=x=>x/100;
+  return {o:r.o.map(s),h:r.h.map(s),l:r.l.map(s),c:r.c.map(s),v:r.v.slice()};
+}
+function dateLabel(len,i){
+  if(!DATES.length) return `第${i+1}根`;
+  const j=i-(len-DATES.length);
+  return (j>=0&&j<DATES.length)?DATES[j]:`第${i+1}根`;
+}
+
+let FILTER='BUY', RESULT=[];
+
+function params(){
+  const g=id=>parseFloat(document.getElementById(id).value);
+  return { days:Math.max(1,g('pDays')|0), volUp:g('pVolUp'), volDn:g('pVolDn'),
+           body:g('pBody')/100, wick:g('pWick')/100 };
+}
+
+function compute(){
+  const P=params();
+  const res=[];
+  for(const code of CODES){
+    const r=DB[code];
+    if(!r||!r.c||r.c.length<60) continue;
+    const b=barsOf(r), n=b.c.length;
+    let all;
+    // 兩套訊號要依時間先後混排，不然明細會變成「葛蘭碧全部、再 MACD 全部」
+    try{ all=[...granville(b,P),...macdRules(b)].sort((x,y)=>x.i-y.i); }catch(e){ continue; }
+    const recent=all.filter(s=>s.i>=n-P.days && (s.t==='BUY'||s.t==='SELL'));
+    if(!recent.length) continue;
+    res.push({
+      code, name:r.n, close:b.c[n-1], n,
+      recent, all: all.slice(-40),
+      hasBuy:  recent.some(s=>s.t==='BUY' &&s.strong),
+      hasSell: recent.some(s=>s.t==='SELL'&&s.strong),
+    });
+  }
+  RESULT=res;
+  render();
+}
+
+function render(){
+  const P=params();
+  const buys  = RESULT.filter(r=>r.hasBuy);
+  const sells = RESULT.filter(r=>r.hasSell);
+  const clash = RESULT.filter(r=>r.hasBuy&&r.hasSell);
+
+  document.getElementById('cards').innerHTML = `
+    <div class="card"><div class="n buy">${buys.length}</div><div class="l">買進訊號</div></div>
+    <div class="card"><div class="n sell">${sells.length}</div><div class="l">賣出／放空訊號</div></div>
+    <div class="card"><div class="n warn">${clash.length}</div><div class="l">多空打架</div></div>
+    <div class="card"><div class="n">${CODES.length}</div><div class="l">掃描檔數</div></div>`;
+
+  const tabs=[['BUY','買進',buys.length],['SELL','賣出／放空',sells.length],
+              ['CLASH','多空打架',clash.length],['ALL','全部',RESULT.length]];
+  document.getElementById('tabs').innerHTML = tabs.map(([k,t,n])=>
+    `<div class="tab ${FILTER===k?'on':''}" data-f="${k}">${t}<span class="n">${n}</span></div>`).join('');
+
+  let list = FILTER==='BUY'?buys : FILTER==='SELL'?sells : FILTER==='CLASH'?clash : RESULT;
+  list = list.slice().sort((a,b)=>a.code.localeCompare(b.code));
+
+  const tb=document.getElementById('tbody');
+  if(!list.length){
+    tb.innerHTML=`<tr><td colspan="5" class="empty">最近 ${P.days} 個交易日沒有符合的訊號，把天數調大或放寬帶量倍數看看</td></tr>`;
+    return;
+  }
+
+  const want = FILTER==='SELL' ? 'SELL' : FILTER==='BUY' ? 'BUY' : null;
+  tb.innerHTML = list.map(r=>{
+    const s = (want ? (r.recent.find(x=>x.t===want&&x.strong)||r.recent.find(x=>x.t===want)) : null)
+            || r.recent.find(x=>x.strong) || r.recent[0];
+    const cls = s.t==='BUY'?'buy':s.t==='SELL'?'sell':s.t==='WARN'?'warn':'watch';
+    const lab = s.t==='BUY'?'買進':s.t==='SELL'?'賣出':s.t==='WARN'?'警示':'觀察';
+    return `<tr data-code="${r.code}">
+      <td><b>${r.code}</b></td>
+      <td>${r.name}${r.hasBuy&&r.hasSell?'<span class="clash">多空打架</span>':''}</td>
+      <td class="num">${r.close.toFixed(2)}</td>
+      <td><span class="badge ${cls}">${lab}</span></td>
+      <td>${s.src} <b>${s.code}</b> ${s.name}${s.strong?' <span class="star">★</span>':''}</td>
+    </tr>`;
+  }).join('');
+}
+
+// 展開單檔明細
+document.getElementById('tbody').addEventListener('click', e=>{
+  const tr=e.target.closest('tr[data-code]');
+  if(!tr) return;
+  const next=tr.nextElementSibling;
+  if(next&&next.classList.contains('detail')){ next.remove(); return; }
+  document.querySelectorAll('tr.detail').forEach(x=>x.remove());
+
+  const r=RESULT.find(x=>x.code===tr.dataset.code);
+  if(!r) return;
+  const rows=r.all.map(s=>{
+    const cls=s.t==='BUY'?'buy':s.t==='SELL'?'sell':s.t==='WARN'?'warn':'watch';
+    const lab=s.t==='BUY'?'買':s.t==='SELL'?'賣':s.t==='WARN'?'警':s.t==='WATCH'?'觀':'·';
+    return `<div class="row">
+      <span class="d">${dateLabel(r.n,s.i)}</span>
+      <span class="badge ${cls}" style="height:fit-content">${lab}</span>
+      <span><b>${s.src} ${s.code} ${s.name}</b>${s.tag?` 〈${s.tag}〉`:''}${s.strong?' <span class="star">★</span>':''}<br>${s.d}</span>
+    </div>`;
+  }).join('');
+  const el=document.createElement('tr');
+  el.className='detail';
+  el.innerHTML=`<td colspan="5"><b>${r.code} ${r.name}</b> 最近訊號歷程（舊→新）${rows||'<div class="row">區間內沒有訊號</div>'}</td>`;
+  tr.after(el);
+});
+
+document.getElementById('tabs').addEventListener('click', e=>{
+  const t=e.target.closest('.tab'); if(!t) return;
+  FILTER=t.dataset.f; render();
+});
+
+['pDays','pVolUp','pVolDn','pBody','pWick'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    clearTimeout(window.__t);
+    window.__t=setTimeout(compute,250);
+  });
+});
+
+// 啟動
+if(!CODES.length){
+  document.getElementById('tbody').innerHTML=
+    '<tr><td colspan="5" class="empty">讀不到 db.js 的日線資料</td></tr>';
+}else{
+  document.getElementById('hint').textContent =
+    `共 ${CODES.length} 檔、每檔 ${DB[CODES[0]].c.length} 個交易日。`+
+    `「帶量倍數」和「不帶量」這兩個門檻課堂筆記沒寫死，調調看哪個數字掃出來的訊號最像老師講的。`;
+  setTimeout(compute,30);
+}
+})();
+</script>
+</body>
+</html>
