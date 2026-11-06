@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>鷹眼看盤</title>
+<meta name="theme-color" content="#0b0c10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="鷹眼看盤">
+<link rel="manifest" href="app.webmanifest">
+<link rel="icon" href="app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="app-icon.svg">
+<style>
+:root{color-scheme:dark;--bg:#0b0c10;--bar:#14161c;--card:#171a21;--line:#272b35;--fg:#ececef;--mut:#8b919c;
+  --up:#ff4d4d;--down:#00c46a;--acc:#f5b400;--blue:#3b9dff;--pur:#a77bff;--warn:#ff4d4d;--def:#3b9dff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:var(--bar);border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top)) 16px 8px;display:flex;align-items:center;gap:10px}
+header h1{font-size:17px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .back{background:none;border:0;color:var(--fg);font-size:22px;padding:0 6px 0 0;cursor:pointer}
+header .hbtn{background:none;border:1px solid var(--line);color:var(--fg);border-radius:99px;padding:3px 11px;font-size:13px;cursor:pointer}
+main{max-width:760px;margin:0 auto;padding:0 16px}
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bar);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav.bottom button{flex:1;background:none;border:0;color:var(--mut);padding:8px 0 7px;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.bottom button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+nav.bottom button.on{color:var(--acc)}
+.search{display:flex;gap:8px;margin:12px 0;position:sticky;top:52px;z-index:4}
+.search input{flex:1;background:var(--card);border:1px solid var(--acc);border-radius:99px;color:var(--fg);padding:9px 15px;font-size:15px;outline:none}
+.row{display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.row .nm{flex:1;min-width:0}.row .nm b{font-size:15px;font-weight:600}.row .nm small{color:var(--mut);margin-left:6px}
+.row .px{text-align:right;font-variant-numeric:tabular-nums;min-width:74px}.row .px b{display:block;font-size:15px}
+.chg{display:inline-block;min-width:66px;text-align:center;border-radius:4px;padding:2px 4px;font-size:13px;font-weight:600;color:#fff;font-variant-numeric:tabular-nums}
+.u{color:var(--up)}.d{color:var(--down)}.bg-u{background:var(--up)}.bg-d{background:var(--down)}.bg-f{background:#555}
+.lamp{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 6px currentColor}
+.lamp.R{background:var(--up);color:var(--up)}.lamp.Y{background:var(--acc);color:var(--acc)}.lamp.G{background:var(--down);color:var(--down)}
+.empty{color:var(--mut);text-align:center;padding:40px 0}
+.seg{display:flex;gap:6px;overflow-x:auto;margin:12px 0 6px;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:none;background:var(--card);border:1px solid var(--line);color:var(--mut);border-radius:6px;padding:5px 12px;font-size:13.5px;cursor:pointer}
+.seg button.on{background:var(--acc);border-color:var(--acc);color:#111;font-weight:700}
+.quote{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:12px 0 8px;align-items:center}
+.quote .big{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.quote .kv{display:grid;grid-template-columns:repeat(3,auto 1fr);gap:1px 6px;font-size:13px;font-variant-numeric:tabular-nums}
+.quote .kv span{color:var(--mut)}
+.info{font-size:12.5px;color:var(--mut);min-height:38px;padding:4px 0;font-variant-numeric:tabular-nums}
+.info b{color:var(--fg);font-weight:500}
+svg.ch{display:block;width:100%;touch-action:pan-y;user-select:none}
+svg.ch text{font-size:10.5px;fill:var(--mut);font-variant-numeric:tabular-nums}
+svg.ch .grid{stroke:#20242d;stroke-width:1}
+.leg{font-size:12px;padding:6px 0 0;font-variant-numeric:tabular-nums}
+.leg i{font-style:normal;margin-right:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0}
+.card h3{margin:0 0 6px;font-size:15px}
+.card p{margin:4px 0;font-size:13.5px;color:#c9ccd3}
+.tag{display:inline-block;font-size:11.5px;border-radius:4px;padding:1px 6px;margin-right:4px;font-weight:600}
+.tag.BUY{background:#3a1416;color:var(--up)}.tag.SELL{background:#0f2d1e;color:var(--down)}.tag.WATCH{background:#3a2c08;color:var(--acc)}
+.feed .it{padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.feed .it .h{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--mut)}
+.feed .it .t{margin:4px 0 2px;font-size:15px;font-weight:600}
+.feed .it .s{font-size:13px;color:#b9bdc6}
+.star{background:none;border:0;font-size:22px;cursor:pointer;color:var(--mut);padding:0 2px}
+.star.on{color:var(--acc)}
+.note{font-size:12px;color:var(--mut);margin:14px 0 24px;line-height:1.6}
+.loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:var(--bg);z-index:20;color:var(--mut)}
+.spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.stat div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;cursor:pointer}
+.stat div.on{border-color:var(--acc)}
+.stat b{display:block;font-size:22px}
+.stat small{color:var(--mut);font-size:12px}
+</style></head>
+<body>
+<div class="loading" id="loading"><div class="spin"></div><div>載入台股資料中…</div></div>
+<header id="hdr"></header>
+<main id="main"></main>
+<nav class="bottom" id="nav">
+  <button data-v="watch"><svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>自選</button>
+  <button data-v="market"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 8-9"/><path d="M15 6h5v5"/></svg>行情</button>
+  <button data-v="lamp"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M9 20h6M10 16v4M14 16v4"/></svg>燈號</button>
+  <button data-v="intel"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>情報</button>
+</nav>
+
+<script src="pairs.js"></script>
+<script src="data.js"></script>
+<script>
+/* ============================================================
+   鷹眼看盤 — 行動版個股看盤 App（PWA）
+   資料：db.js（約 1,200 檔台股、最近 120 個交易日 OHLCV + 型態訊號）
+         data.js（處置股公告）、pairs.js（最近交易日日期）
+   ============================================================ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let DB={}, CODES=[], DATES=[], IND={};
+let state={view:'market', code:null, sub:'eye', bars:60, lampF:'R', q:'', intelF:'sig'};
+
+/* ---------- 自選股（存在瀏覽器） ---------- */
+const WKEY='hawkeye.watch';
+function getWatch(){try{const v=JSON.parse(localStorage.getItem(WKEY));if(Array.isArray(v))return v}catch(e){}return ['2330','2317','2454','2303','2881']}
+function setWatch(a){try{localStorage.setItem(WKEY,JSON.stringify(a))}catch(e){}}
+let WATCH=getWatch();
+
+/* ---------- 技術指標 ---------- */
+function sma(a,n){const r=Array(a.length).fill(null);let s=0;for(let i=0;i<a.length;i++){s+=a[i];if(i>=n)s-=a[i-n];if(i>=n-1)r[i]=s/n}return r}
+function ema(a,n){const r=[],k=2/(n+1);let e=a[0];for(let i=0;i<a.length;i++){e=i?a[i]*k+e*(1-k):a[0];r.push(e)}return r}
+function rsi(c,n){const r=Array(c.length).fill(null);let g=0,l=0;
+  for(let i=1;i<c.length;i++){const d=c[i]-c[i-1],up=Math.max(d,0),dn=Math.max(-d,0);
+    if(i<=n){g+=up;l+=dn;if(i===n){g/=n;l/=n;r[i]=l?100-100/(1+g/l):100}}
+    else{g=(g*(n-1)+up)/n;l=(l*(n-1)+dn)/n;r[i]=l?100-100/(1+g/l):100}}
+  return r}
+function kd(k,n=9){const K=[],D=[],J=[];let pk=50,pd=50;
+  for(let i=0;i<k.c.length;i++){const s=Math.max(0,i-n+1);
+    const hh=Math.max(...k.h.slice(s,i+1)),ll=Math.min(...k.l.slice(s,i+1));
+    const rsv=hh===ll?50:(k.c[i]-ll)/(hh-ll)*100;
+    pk=pk*2/3+rsv/3;pd=pd*2/3+pk/3;K.push(pk);D.push(pd);J.push(3*pk-2*pd)}
+  return{K,D,J}}
+function macd(c){const e1=ema(c,12),e2=ema(c,26),dif=c.map((_,i)=>e1[i]-e2[i]),sig=ema(dif,9);
+  return{dif,sig,osc:dif.map((v,i)=>v-sig[i])}}
+function atr(k,n=14){const tr=k.c.map((c,i)=>i?Math.max(k.h[i]-k.l[i],Math.abs(k.h[i]-k.c[i-1]),Math.abs(k.l[i]-k.c[i-1])):k.h[i]-k.l[i]);
+  const r=Array(tr.length).fill(null);let a=0;
+  for(let i=0;i<tr.length;i++){if(i<n){a+=tr[i];if(i===n-1){a/=n;r[i]=a}}else{a=(a*(n-1)+tr[i])/n;r[i]=a}}return r}
+
+/* 鷹眼線：警戒線（上）＝ MA20 + 2×ATR14；防守線（下）＝ MA20 − 2×ATR14
+   收盤站上警戒線＝強勢突破／過熱；跌破防守線＝趨勢轉弱。 */
+function calc(code){
+  if(IND[code])return IND[code];
+  const k=DB[code],c=k.c,n=c.length;
+  const m5=sma(c,5),m20=sma(c,20),m60=sma(c,60),A=atr(k),R7=rsi(c,7),R14=rsi(c,14),KD=kd(k),M=macd(c);
+  const up=c.map((_,i)=>m20[i]!=null&&A[i]!=null?m20[i]+2*A[i]:null);
+  const dn=c.map((_,i)=>m20[i]!=null&&A[i]!=null?m20[i]-2*A[i]:null);
+  const L=n-1;
+  /* 趨勢燈號：5 個條件各 ±1 */
+  const conds=[
+    ['收盤站上月線(MA20)',m20[L]!=null&&c[L]>m20[L]],
+    ['月線在季線之上',m60[L]!=null?m20[L]>m60[L]:(m20[L]!=null&&m5[L]>m20[L])],
+    ['MACD 柱體翻正',M.osc[L]>0],
+    ['KD 黃金交叉區(K>D)',KD.K[L]>KD.D[L]],
+    ['RSI14 > 50',R14[L]!=null&&R14[L]>50]];
+  const score=conds.reduce((s,[,v])=>s+(v?1:-1),0);
+  const lamp=score>=3?'R':score<=-3?'G':'Y';
+  let alert='';
+  if(up[L]!=null&&c[L]>up[L])alert='突破警戒線';
+  else if(dn[L]!=null&&c[L]<dn[L])alert='跌破防守線';
+  const prev=n>1?c[n-2]:c[L],chg=c[L]-prev,pct=prev?chg/prev*100:0;
+  return IND[code]={m5,m20,m60,A,R7,R14,KD,M,up,dn,conds,score,lamp,alert,chg,pct}}
+
+/* ---------- 共用 ---------- */
+const fmt=v=>v==null||isNaN(v)?'-':(v>=1000?v.toFixed(0):v>=100?v.toFixed(1):v.toFixed(2));
+const cls=v=>v>0?'u':v<0?'d':'';
+const sgn=v=>(v>0?'+':'')+v.toFixed(2);
+const dateAt=(k,i)=>{const o=DATES.length-k.c.length;return DATES[o+i]||''};
+const LAMPTXT={R:'紅燈・多方',Y:'黃燈・盤整',G:'綠燈・空方'};
+function chgBadge(p){return `<span class="chg ${p>0?'bg-u':p<0?'bg-d':'bg-f'}">${p>0?'+':''}${p.toFixed(2)}%</span>`}
+function stockRow(code,extra=''){
+  const k=DB[code];if(!k)return '';const I=calc(code),L=k.c.length-1;
+  return `<div class="row" onclick="openStock('${code}')"><span class="lamp ${I.lamp}" title="${LAMPTXT[I.lamp]}"></span>
+    <div class="nm"><b>${esc(k.n)}</b><small>${code}</small>${extra}</div>
+    <div class="px"><b class="${cls(I.chg)}">${fmt(k.c[L])}</b></div>${chgBadge(I.pct)}</div>`}
+
+/* ---------- 頁首／導覽 ---------- */
+function header(){
+  if(state.code){const k=DB[state.code],on=WATCH.includes(state.code);
+    $('#hdr').innerHTML=`<button class="back" onclick="closeStock()" aria-label="返回">‹</button>
+      <h1>${state.code} ${esc(k.n)}</h1>
+      <button class="star${on?' on':''}" onclick="toggleWatch('${state.code}')" aria-label="加入自選">${on?'★':'☆'}</button>`;
+    return}
+  const T={watch:'我的自選',market:'台股行情',lamp:'趨勢燈號',intel:'情報中心'};
+  $('#hdr').innerHTML=`<h1>🦅 鷹眼看盤・${T[state.view]}</h1><a class="hbtn" href="index.html" style="text-decoration:none">處置股</a>`;
+}
+function go(v){state.view=v;state.code=null;render();window.scrollTo(0,0)}
+function openStock(c){state.code=c;state.sub=state.sub||'eye';render();window.scrollTo(0,0);try{history.pushState({c},'','#'+c)}catch(e){}}
+function closeStock(){if(location.hash){history.back();return}state.code=null;render()}
+window.addEventListener('popstate',()=>{const c=location.hash.slice(1);state.code=DB[c]?c:null;render()});
+function toggleWatch(c){WATCH=WATCH.includes(c)?WATCH.filter(x=>x!==c):[...WATCH,c];setWatch(WATCH);header()}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+
+function render(){
+  header();
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',!state.code&&b.dataset.v===state.view));
+  if(state.code)return renderStock();
+  ({watch:renderWatch,market:renderMarket,lamp:renderLamp,intel:renderIntel})[state.view]();
+}
+
+/* ---------- 自選 ---------- */
+function renderWatch(){
+  const rows=WATCH.filter(c=>DB[c]).map(c=>stockRow(c)).join('');
+  $('#main').innerHTML=(rows||'<p class="empty">還沒有自選股。到「行情」搜尋個股，點右上角 ☆ 加入。</p>')+
+    `<p class="note">燈號：<span class="u">● 紅燈</span> 多方、<span style="color:var(--acc)">● 黃燈</span> 盤整、<span class="d">● 綠燈</span> 空方（依台股慣例紅漲綠跌）。</p>`;
+}
+
+/* ---------- 行情（搜尋 + 排行） ---------- */
+function renderMarket(){
+  $('#main').innerHTML=`<div class="search"><input id="q" type="search" placeholder="輸入股票代號或名稱" value="${esc(state.q)}" autocomplete="off"></div>
+    <div class="seg" id="mk"></div><div id="list"></div>`;
+  const q=$('#q');q.oninput=()=>{state.q=q.value.trim();list()};
+  const tabs=[['up','漲幅'],['down','跌幅'],['vol','成交量'],['brk','突破警戒'],['fall','跌破防守']];
+  state.mk=state.mk||'up';
+  const seg=()=>{$('#mk').innerHTML=tabs.map(([k,l])=>`<button class="${state.mk===k?'on':''}" data-k="${k}">${l}</button>`).join('');
+    $('#mk').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.mk=b.dataset.k;seg();list()})};
+  function list(){
+    let codes;
+    if(state.q){const s=state.q.toLowerCase();codes=CODES.filter(c=>c.startsWith(s)||DB[c].n.toLowerCase().includes(s)).slice(0,60);
+      $('#mk').style.display='none'}
+    else{$('#mk').style.display='';
+      const last=c=>DB[c].c.length-1;
+      if(state.mk==='up')codes=CODES.slice().sort((a,b)=>calc(b).pct-calc(a).pct);
+      else if(state.mk==='down')codes=CODES.slice().sort((a,b)=>calc(a).pct-calc(b).pct);
+      else if(state.mk==='vol')codes=CODES.slice().sort((a,b)=>DB[b].v[last(b)]-DB[a].v[last(a)]);
+      else if(state.mk==='brk')codes=CODES.filter(c=>calc(c).alert==='突破警戒線').sort((a,b)=>calc(b).pct-calc(a).pct);
+      else codes=CODES.filter(c=>calc(c).alert==='跌破防守線').sort((a,b)=>calc(a).pct-calc(b).pct);
+      codes=codes.slice(0,50)}
+    $('#list').innerHTML=codes.map(c=>stockRow(c,state.mk==='vol'&&!state.q?`<small>${DB[c].v[DB[c].v.length-1].toLocaleString()} 張</small>`:'')).join('')||'<p class="empty">沒有符合的股票</p>';
+  }
+  seg();list();
+}
+
+/* ---------- 趨勢燈號 ---------- */
+function renderLamp(){
+  const cnt={R:0,Y:0,G:0};CODES.forEach(c=>cnt[calc(c).lamp]++);
+  const f=state.lampF;
+  const codes=CODES.filter(c=>calc(c).lamp===f).sort((a,b)=>(calc(b).score-calc(a).score)||(f==='G'?calc(a).pct-calc(b).pct:calc(b).pct-calc(a).pct)).slice(0,80);
+  $('#main').innerHTML=`<div class="stat">${['R','Y','G'].map(k=>`<div class="${f===k?'on':''}" onclick="state.lampF='${k}';renderLamp()">
+      <b class="${k==='R'?'u':k==='G'?'d':''}" ${k==='Y'?'style="color:var(--acc)"':''}>${cnt[k]}</b><small>${LAMPTXT[k]}</small></div>`).join('')}</div>
+    ${codes.map(c=>stockRow(c,`<small>${calc(c).score>0?'+':''}${calc(c).score} 分</small>`)).join('')}
+    ${codes.length===80?'<p class="note">只列出前 80 檔，可到「行情」搜尋其他個股。</p>':''}
+    <p class="note">趨勢燈號以 5 項條件計分（各 ±1）：收盤 vs 月線、月線 vs 季線、MACD 柱體、KD 位置、RSI14 是否大於 50。總分 ≥ +3 為紅燈、≤ −3 為綠燈，其餘為黃燈。</p>`;
+}
+
+/* ---------- 情報中心 ---------- */
+function renderIntel(){
+  const tabs=[['sig','今日型態訊號'],['disp','處置股公告']];
+  let body='';
+  if(state.intelF==='sig'){
+    const items=[];
+    for(const c of CODES){const k=DB[c],L=k.c.length-1;(k.m||[]).forEach(m=>{if(m[0]>=L-2)items.push([c,m])})}
+    items.sort((a,b)=>b[1][0]-a[1][0]||({BUY:0,SELL:1,WATCH:2}[a[1][2]]-{BUY:0,SELL:1,WATCH:2}[b[1][2]]));
+    const TL={BUY:'偏多',SELL:'警示',WATCH:'觀察'};
+    body=items.slice(0,150).map(([c,m])=>{const k=DB[c];return `<div class="it" onclick="openStock('${c}')">
+      <div class="h"><span class="tag ${m[2]}">${TL[m[2]]}</span>${c} ${esc(k.n)}<span style="margin-left:auto">${dateAt(k,m[0])}</span></div>
+      <div class="t">${esc(m[1])}</div><div class="s">${esc(m[4]||'')}</div></div>`}).join('')||'<p class="empty">近 3 日沒有新的型態訊號</p>';
+  }else{
+    const D=(window.DISPOSITION_DATA||{}).dispositions||[];
+    body=D.slice().sort((a,b)=>(b.start||'').localeCompare(a.start||'')).map(d=>`<div class="it" ${DB[d.code]?`onclick="openStock('${d.code}')"`:''}>
+      <div class="h"><span class="tag SELL">${esc(d.measure||'處置')}</span>${esc(d.market)}・${esc(d.code)} ${esc(d.name)}<span style="margin-left:auto">${esc(d.announceDate||'')}</span></div>
+      <div class="t">處置期間 ${esc(d.start)} ～ ${esc(d.end)}</div><div class="s">${esc(d.reason||'')}${d.round?'・'+esc(d.round):''}</div></div>`).join('')||'<p class="empty">目前沒有處置股</p>';
+  }
+  $('#main').innerHTML=`<div class="seg">${tabs.map(([k,l])=>`<button class="${state.intelF===k?'on':''}" onclick="state.intelF='${k}';renderIntel()">${l}</button>`).join('')}</div><div class="feed">${body}</div>`;
+}
+
+/* ---------- 個股頁 ---------- */
+function renderStock(){
+  const c=state.code,k=DB[c],I=calc(c),L=k.c.length-1;
+  const subs=[['eye','鷹眼線'],['lamp','趨勢燈號'],['sig','型態訊號']];
+  $('#main').innerHTML=`
+   <div class="quote"><div><div class="big ${cls(I.chg)}">${fmt(k.c[L])}</div>
+      <div class="${cls(I.chg)}" style="font-size:14px">${sgn(I.chg)}（${sgn(I.pct)}%）${I.chg>0?'▲':I.chg<0?'▼':''}</div></div>
+    <div class="kv"><span>開</span><b>${fmt(k.o[L])}</b><span>高</span><b class="u">${fmt(k.h[L])}</b><span>量</span><b>${k.v[L].toLocaleString()}</b>
+      <span>收</span><b>${fmt(k.c[L])}</b><span>低</span><b class="d">${fmt(k.l[L])}</b><span>昨</span><b>${fmt(k.c[L-1]??k.c[L])}</b></div>
+    <div style="grid-column:1/-1;font-size:12px;color:var(--mut)">${dateAt(k,L)} 收盤　<span class="lamp ${I.lamp}" style="display:inline-block;width:9px;height:9px;vertical-align:0"></span> ${LAMPTXT[I.lamp]}${I.alert?`　<b class="${I.alert.includes('突破')?'u':'d'}">⚠ ${I.alert}</b>`:''}</div></div>
+   <div class="seg">${subs.map(([s,l])=>`<button class="${state.sub===s?'on':''}" onclick="state.sub='${s}';renderStock()">${l}</button>`).join('')}</div>
+   <div id="sub"></div>`;
+  ({eye:subEye,lamp:subLamp,sig:subSig})[state.sub](c);
+}
+
+function subLamp(c){
+  const I=calc(c);
+  $('#sub').innerHTML=`<div class="card"><h3><span class="lamp ${I.lamp}" style="display:inline-block;vertical-align:-1px;margin-right:6px"></span>${LAMPTXT[I.lamp]}（${I.score>0?'+':''}${I.score} 分）</h3>
+    ${I.conds.map(([t,v])=>`<p>${v?'<b class="u">✔</b>':'<b class="d">✘</b>'}　${t}</p>`).join('')}</div>
+    <div class="card"><h3>鷹眼線</h3>
+      <p>警戒線 <b class="u">${fmt(I.up.at(-1))}</b>　防守線 <b style="color:var(--def)">${fmt(I.dn.at(-1))}</b></p>
+      <p>距警戒線 ${fmt((I.up.at(-1)/DB[c].c.at(-1)-1)*100)}%　距防守線 ${fmt((1-I.dn.at(-1)/DB[c].c.at(-1))*100)}%</p></div>
+    <p class="note">技術分析僅供參考，不構成投資建議。</p>`;
+}
+function subSig(c){
+  const k=DB[c],TL={BUY:'偏多',SELL:'警示',WATCH:'觀察'};
+  const ms=(k.m||[]).slice().sort((a,b)=>b[0]-a[0]);
+  $('#sub').innerHTML=`<div class="feed">${ms.map(m=>`<div class="it"><div class="h"><span class="tag ${m[2]}">${TL[m[2]]}</span><span style="margin-left:auto">${dateAt(k,m[0])}</span></div>
+    <div class="t">${esc(m[1])}</div><div class="s">${esc(m[4]||'')}</div></div>`).join('')||'<p class="empty">近期沒有型態訊號</p>'}</div>
+    ${(k.x||[]).length?`<p class="note">除權息：${k.x.map(([i,t])=>dateAt(k,i)+' '+esc(t)).join('、')}</p>`:''}`;
+}
+
+/* 鷹眼線主圖 + RSI / KD / MACD 副圖 */
+function subEye(c){
+  $('#sub').innerHTML=`<div class="seg" style="margin-top:0">${[60,120].map(b=>`<button class="${state.bars===b?'on':''}" onclick="state.bars=${b};subEye('${c}')">${b} 日</button>`).join('')}</div>
+    <div class="info" id="info"></div><div id="chart"></div>
+    <p class="note"><b class="u">警戒線</b>＝MA20＋2×ATR14，收盤站上代表強勢突破或短線過熱；<b style="color:var(--def)">防守線</b>＝MA20−2×ATR14，跌破代表趨勢轉弱。線上標示的是最新一日的數值，框內則是區間最高／最低價。按住圖表左右滑動可以查看每一天的數值。<br>技術分析僅供參考，不構成投資建議。</p>`;
+  drawEye(c);
+}
+function drawEye(c){
+  const k=DB[c],I=calc(c),n=k.c.length,st=Math.max(0,n-state.bars),m=n-st;
+  const box=$('#chart'),W=Math.max(300,box.clientWidth),PR=50,PL=4,cw=(W-PL-PR)/m;
+  const H1=230,HV=46,HS=78,G=22;
+  const D0=8+H1+6+HV+20; /* 日期列下方才開始副圖 */
+  const tops={p:8,v:8+H1+6,r:D0+G,k:D0+G+HS+G,m:D0+G+(HS+G)*2};
+  const H=tops.m+HS+18;
+  const x=i=>PL+(i-st+.5)*cw;
+  let hi=-1e9,lo=1e9;for(let i=st;i<n;i++){hi=Math.max(hi,k.h[i]);lo=Math.min(lo,k.l[i])}
+  const uL=I.up[n-1],dL=I.dn[n-1];
+  const shi=Math.max(hi,uL??hi),slo=Math.min(lo,dL??lo),pad=(shi-slo)*.06||1;
+  const ph=shi+pad,pl=slo-pad,y=v=>tops.p+(ph-v)/(ph-pl)*H1;
+  let s='';
+  /* 主圖格線與座標 */
+  for(let f=0;f<=4;f++){const yy=tops.p+H1*f/4;s+=`<line x1="${PL}" x2="${W-PR}" y1="${yy}" y2="${yy}" class="grid"/><text x="${W-PR+4}" y="${yy+4}">${fmt(ph-(ph-pl)*f/4)}</text>`}
+  /* 日期 */
+  [st,st+Math.floor(m/2),n-1].forEach((i,j)=>{s+=`<text x="${x(i)}" y="${tops.v+HV+14}" text-anchor="${['start','middle','end'][j]}">${dateAt(k,i)}</text>`});
+  /* 鷹眼線（警戒／防守）：動態曲線淡顯 + 最新值水平線 */
+  const path=(arr,yy)=>{let p='';for(let i=st;i<n;i++)if(arr[i]!=null)p+=(p?'L':'M')+x(i).toFixed(1)+','+yy(arr[i]).toFixed(1);return p};
+  s+=`<path d="${path(I.up,y)}" fill="none" stroke="var(--warn)" stroke-width="1" opacity=".35" stroke-dasharray="3 3"/>`;
+  s+=`<path d="${path(I.dn,y)}" fill="none" stroke="var(--def)" stroke-width="1" opacity=".35" stroke-dasharray="3 3"/>`;
+  if(uL!=null){s+=`<line x1="${PL}" x2="${W-PR}" y1="${y(uL)}" y2="${y(uL)}" stroke="var(--warn)" stroke-width="1.6"/>
+    <circle cx="${PL+9}" cy="${y(uL)}" r="8" fill="var(--warn)"/><text x="${PL+9}" y="${y(uL)+3.5}" text-anchor="middle" style="fill:#fff;font-size:9.5px;font-weight:700">警</text>
+    <rect x="${W-PR+1}" y="${y(uL)-8}" width="${PR-2}" height="16" rx="2" fill="var(--warn)"/><text x="${W-PR/2}" y="${y(uL)+4}" text-anchor="middle" style="fill:#fff;font-weight:700">${fmt(uL)}</text>`}
+  if(dL!=null){s+=`<line x1="${PL}" x2="${W-PR}" y1="${y(dL)}" y2="${y(dL)}" stroke="var(--def)" stroke-width="1.6"/>
+    <circle cx="${PL+9}" cy="${y(dL)}" r="8" fill="var(--def)"/><text x="${PL+9}" y="${y(dL)+3.5}" text-anchor="middle" style="fill:#fff;font-size:9.5px;font-weight:700">守</text>
+    <rect x="${W-PR+1}" y="${y(dL)-8}" width="${PR-2}" height="16" rx="2" fill="var(--def)"/><text x="${W-PR/2}" y="${y(dL)+4}" text-anchor="middle" style="fill:#fff;font-weight:700">${fmt(dL)}</text>`}
+  /* K 棒 */
+  const bw=Math.max(1,cw*.66);
+  for(let i=st;i<n;i++){const col=k.c[i]>=k.o[i]?'var(--up)':'var(--down)',xx=x(i);
+    s+=`<line x1="${xx}" x2="${xx}" y1="${y(k.h[i])}" y2="${y(k.l[i])}" stroke="${col}"/>`;
+    const t=y(Math.max(k.o[i],k.c[i])),b=y(Math.min(k.o[i],k.c[i]));
+    s+=`<rect x="${xx-bw/2}" y="${t}" width="${bw}" height="${Math.max(b-t,1)}" fill="${col}"/>`}
+  /* 均線 */
+  [[I.m5,'#e9e9e9'],[I.m20,'var(--acc)'],[I.m60,'var(--pur)']].forEach(([a,col])=>{const p=path(a,y);if(p)s+=`<path d="${p}" fill="none" stroke="${col}" stroke-width="1.1" opacity=".85"/>`});
+  /* 區間最高 / 最低標籤 */
+  let ih=st,il=st;for(let i=st;i<n;i++){if(k.h[i]>k.h[ih])ih=i;if(k.l[i]<k.l[il])il=i}
+  const tag=(i,v,yy,above)=>{const tx=Math.min(Math.max(x(i),PL+22),W-PR-22),ty=above?yy-14:yy+4;
+    return `<rect x="${tx-21}" y="${ty}" width="42" height="13" rx="2" fill="#0b0c10" stroke="#555"/><text x="${tx}" y="${ty+10}" text-anchor="middle" style="fill:#ddd">${fmt(v)}</text>`};
+  s+=tag(ih,k.h[ih],y(k.h[ih]),true)+tag(il,k.l[il],y(k.l[il]),false);
+  /* 成交量 */
+  let vm=1;for(let i=st;i<n;i++)vm=Math.max(vm,k.v[i]);
+  for(let i=st;i<n;i++){const hh=k.v[i]/vm*HV;s+=`<rect x="${x(i)-bw/2}" y="${tops.v+HV-hh}" width="${bw}" height="${hh}" fill="${k.c[i]>=k.o[i]?'var(--up)':'var(--down)'}" opacity=".55"/>`}
+  /* 副圖 */
+  function sub(top,series,lo,hi,levels,bars){
+    const yy=v=>top+(hi-v)/(hi-lo)*HS;let o=`<rect x="${PL}" y="${top}" width="${W-PL-PR}" height="${HS}" fill="none" stroke="#20242d"/>`;
+    levels.forEach(l=>{o+=`<line x1="${PL}" x2="${W-PR}" y1="${yy(l)}" y2="${yy(l)}" class="grid" stroke-dasharray="2 3"/><text x="${W-PR+4}" y="${yy(l)+4}">${fmt(l)}</text>`});
+    if(bars){const z=yy(0);for(let i=st;i<n;i++){const v=bars[i],t=yy(v);o+=`<rect x="${x(i)-bw/2}" y="${Math.min(t,z)}" width="${bw}" height="${Math.abs(t-z)||.5}" fill="${v>=0?'var(--up)':'var(--down)'}" opacity=".7"/>`}}
+    series.forEach(([a,col])=>{const p=path(a,yy);if(p)o+=`<path d="${p}" fill="none" stroke="${col}" stroke-width="1.2"/>`});
+    return o}
+  s+=sub(tops.r,[[I.R7,'var(--warn)'],[I.R14,'var(--blue)']],0,100,[20,50,80]);
+  s+=sub(tops.k,[[I.KD.K,'var(--warn)'],[I.KD.D,'var(--blue)']],0,100,[20,50,80]);
+  let mm=1e-9;for(let i=st;i<n;i++)mm=Math.max(mm,Math.abs(I.M.dif[i]),Math.abs(I.M.sig[i]),Math.abs(I.M.osc[i]));
+  s+=sub(tops.m,[[I.M.dif,'var(--acc)'],[I.M.sig,'var(--blue)']],-mm*1.1,mm*1.1,[0],I.M.osc);
+  /* 副圖標題（數值隨游標更新） */
+  s+=`<g id="lg"></g><line id="cx" x1="0" x2="0" y1="${tops.p}" y2="${tops.m+HS}" stroke="#aaa" stroke-dasharray="3 3" visibility="hidden"/>`;
+  box.innerHTML=`<svg class="ch" viewBox="0 0 ${W} ${H}" height="${H}">${s}</svg>`;
+  const svg=box.querySelector('svg');
+  function show(i){
+    const pv=i?k.c[i-1]:k.c[i],ch=k.c[i]-pv,p=pv?ch/pv*100:0;
+    $('#info').innerHTML=`<b>${dateAt(k,i)}</b>　開 <b>${fmt(k.o[i])}</b> 高 <b class="u">${fmt(k.h[i])}</b> 低 <b class="d">${fmt(k.l[i])}</b> 收 <b class="${cls(ch)}">${fmt(k.c[i])}</b> <span class="${cls(ch)}">${sgn(p)}%</span> 量 <b>${k.v[i].toLocaleString()}</b><br>
+      <span style="color:#e9e9e9">MA5 ${fmt(I.m5[i])}</span>　<span style="color:var(--acc)">MA20 ${fmt(I.m20[i])}</span>　<span style="color:var(--pur)">MA60 ${fmt(I.m60[i])}</span>`;
+    const t=(yy,txt)=>`<text x="${PL+3}" y="${yy-6}" style="font-size:11px">${txt}</text>`;
+    svg.querySelector('#lg').innerHTML=
+      t(tops.r,`<tspan style="fill:var(--warn)">RSI7 ${fmt(I.R7[i])}</tspan>　<tspan style="fill:var(--blue)">RSI14 ${fmt(I.R14[i])}</tspan>`)+
+      t(tops.k,`<tspan style="fill:var(--warn)">K ${fmt(I.KD.K[i])}</tspan>　<tspan style="fill:var(--blue)">D ${fmt(I.KD.D[i])}</tspan>　J ${fmt(I.KD.J[i])}`)+
+      t(tops.m,`<tspan style="fill:var(--acc)">DIF ${I.M.dif[i].toFixed(2)}</tspan>　<tspan style="fill:var(--blue)">MACD ${I.M.sig[i].toFixed(2)}</tspan>　OSC ${I.M.osc[i].toFixed(2)}`);
+  }
+  show(n-1);
+  const cx=svg.querySelector('#cx');
+  const mv=e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)*W/r.width;
+    const i=Math.min(n-1,Math.max(st,Math.floor((px-PL)/cw)+st));cx.setAttribute('x1',x(i));cx.setAttribute('x2',x(i));cx.setAttribute('visibility','visible');show(i)};
+  svg.addEventListener('pointerdown',mv);svg.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'||e.buttons)mv(e)});
+  svg.addEventListener('pointerleave',()=>{cx.setAttribute('visibility','hidden');show(n-1)});
+}
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(state.code&&state.sub==='eye')drawEye(state.code)},150)});
+
+/* ---------- 交易日期 ----------
+   db.js 只有價格，日期向量放在 signals.html 檔尾（DATES=[...]），用 Range 只抓最後一小段；
+   抓不到時退回 pairs.js 的最近交易日，再往前以工作日推估。 */
+async function loadDates(n){
+  try{const r=await fetch('signals.html',{headers:{Range:'bytes=-12000'}});const t=await r.text();
+    const m=t.match(/DATES=(\[[^\]]*\])/);
+    if(m){const D=JSON.parse(m[1]);const p=(window.PAIRS_DATA||{}).iso||[];
+      const y0=(p.at(-1)||String(new Date().getFullYear())).slice(0,4);
+      /* DATES 為 MMDD，由最後一天往前推年份（遇到月份變大就跨年） */
+      let y=+y0,prev=null;const out=[];
+      for(let i=D.length-1;i>=0;i--){const md=D[i];if(prev&&md>prev)y--;prev=md;out.unshift(`${y}/${md.slice(0,2)}/${md.slice(2)}`)}
+      if(out.length>=n)return out}
+  }catch(e){}
+  const iso=((window.PAIRS_DATA||{}).iso||[]).map(s=>s.replace(/-/g,'/'));
+  const out=iso.slice();let d=new Date((iso[0]||new Date().toISOString().slice(0,10)).replace(/\//g,'-'));
+  while(out.length<n){d.setDate(d.getDate()-1);const w=d.getDay();if(w&&w<6)out.unshift(`~${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`)}
+  return out}
+
+/* ---------- 啟動 ---------- */
+(function boot(){
+  const s=document.createElement('script');s.src='db.js';
+  s.onload=async()=>{
+    const F=window.DB_FULL||{};
+    for(const c in F){const k=F[c];if(!k.c||k.c.length<2)continue;for(const f of ['o','h','l','c']){const a=k[f];for(let i=0;i<a.length;i++)a[i]/=100}DB[c]=k}
+    CODES=Object.keys(DB).sort();
+    DATES=await loadDates(Math.max(...CODES.map(c=>DB[c].c.length)));
+    $('#loading').remove();
+    const h=location.hash.slice(1);if(DB[h])state.code=h;
+    render()};
+  s.onerror=()=>{$('#loading').innerHTML='<div>資料載入失敗，請稍後重新整理。</div>'};
+  document.head.appendChild(s);
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('app-sw.js').catch(()=>{});
+})();
+</script>
+</body></html>
